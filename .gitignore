@@ -5,3 +5,6 @@ Octave Commands for extracting Spectral radius and Convergence Rate.docx
 .vscode
 *.pdf
 *.jpg
+*.msh
+*.out
+*.txt
