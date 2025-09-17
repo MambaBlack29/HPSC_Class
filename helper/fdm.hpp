@@ -1,0 +1,131 @@
+#pragma once
+#include <vector>
+#include <string>
+#include <functional>
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+#include "math.hpp"
+
+// Map (i,j) in 0..N-1 x 0..N-1 to row-major index k
+inline int idx(int i, int j, int N) { return j * N + i; }
+inline std::function<double(double)> const_fn(double val){
+    return [val](double){ return val; };
+}
+
+struct DenseSystem {
+    std::vector<double> A;
+    std::vector<double> b;
+    int N = 0;
+    int n = 0;
+    double h = 0.0;
+};
+
+DenseSystem build_dense_laplace(
+    double h,
+    const std::function<double(double)>& g_left,
+    const std::function<double(double)>& g_right,
+    const std::function<double(double)>& g_bottom,
+    const std::function<double(double)>& g_top
+) {
+    int N = (int)std::llround(1.0 / h - 1.0);
+    int n = N * N;
+
+    DenseSystem sys;
+    sys.N = N; sys.n = n; sys.h = h;
+    sys.A.assign(n * n, 0.0);
+    sys.b.assign(n, 0.0);
+
+    for (int j = 0; j < N; ++j) {
+        double yj = (j + 1) * h;
+        for (int i = 0; i < N; ++i) {
+            double xi = (i + 1) * h;
+
+            int r = idx(i, j, N);
+            sys.A[r * n + r] = 4.0;
+
+            if (i - 1 >= 0) {
+                int c = idx(i - 1, j, N);
+                sys.A[r * n + c] = -1.0;
+            } else {
+                sys.b[r] += g_left(yj);
+            }
+
+            if (i + 1 < N) {
+                int c = idx(i + 1, j, N);
+                sys.A[r * n + c] = -1.0;
+            } else {
+                sys.b[r] += g_right(yj);
+            }
+
+            if (j - 1 >= 0) {
+                int c = idx(i, j - 1, N);
+                sys.A[r * n + c] = -1.0;
+            } else {
+                sys.b[r] += g_bottom(xi);
+            }
+
+            if (j + 1 < N) {
+                int c = idx(i, j + 1, N);
+                sys.A[r * n + c] = -1.0;
+            } else {
+                sys.b[r] += g_top(xi);
+            }
+        }
+    }
+
+    if(!math::symmetric(sys.A, n)){
+        sys.A = math::mul(math::add(sys.A, math::transpose(sys.A, n, n)), 0.5);
+    }
+
+    return sys;
+}
+
+DenseSystem build_dense_laplace(
+    double h,
+    double bc_left, double bc_right,
+    double bc_bottom, double bc_top
+) {
+    auto gl = const_fn(bc_left);
+    auto gr = const_fn(bc_right);
+    auto gb = const_fn(bc_bottom);
+    auto gt = const_fn(bc_top);
+    return build_dense_laplace(h, gl, gr, gb, gt);
+}
+
+void print_system(const DenseSystem& sys) {
+    int n = sys.N * sys.N;
+    std::cout.setf(std::ios::fixed); std::cout << std::setprecision(2);
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c < n; ++c) {
+            std::cout << std::setw(6) << sys.A[idx(c, r, n)] << " ";
+        }
+        std::cout << " | " << std::setw(8) << sys.b[r] << "\n";
+    }
+}
+
+void save_vector(const std::vector<double>& vec, const std::string& filename) {
+    std::ofstream out(filename, std::ios::out | std::ios::trunc);
+    if (!out.is_open()) return;
+    for (double val : vec) out << val << "\n";
+    out.close();
+}
+
+void save_system(const DenseSystem& sys){
+    std::string Kmat = "Kmat" + std::to_string(sys.N) + ".txt";
+    std::string Fvec = "Fvec" + std::to_string(sys.N) + ".txt";
+    save_vector(sys.A, Kmat);
+    save_vector(sys.b, Fvec);
+}
+
+// int main() {
+//     // Example: N=3 interior points => h=1/4
+//     double h = 0.02;
+//     double bc_left=0, bc_right=0, bc_bottom=0, bc_top=1;
+
+//     DenseSystem sys = build_dense_laplace(h, bc_left, bc_right, bc_bottom, bc_top);
+
+//     cout << "N=" << sys.N << ", total unknowns = " << sys.N*sys.N << "\n\n";
+//     print_system(sys);
+// }
