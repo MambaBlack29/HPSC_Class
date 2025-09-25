@@ -10,8 +10,22 @@
 
 // Map (i,j) in 0..N-1 x 0..N-1 to row-major index k
 inline int idx(int i, int j, int N) { return j * N + i; }
+
 inline std::function<double(double)> const_fn(double val){
     return [val](double){ return val; };
+}
+
+static bool read_vector_file(
+    const std::string& path, 
+    std::vector<double>& out
+) {
+    std::ifstream in(path);
+    if (!in) return false;
+    out.clear();
+    out.reserve(1<<20);
+    double x;
+    while (in >> x) out.push_back(x);
+    return true;
 }
 
 struct DenseSystem {
@@ -22,7 +36,7 @@ struct DenseSystem {
     double h = 0.0;
 };
 
-DenseSystem build_dense_laplace(
+DenseSystem dense_laplace_fdm(
     double h,
     const std::function<double(double)>& g_left,
     const std::function<double(double)>& g_right,
@@ -82,7 +96,7 @@ DenseSystem build_dense_laplace(
     return sys;
 }
 
-DenseSystem build_dense_laplace(
+DenseSystem dense_laplace_fdm(
     double h,
     double bc_left, double bc_right,
     double bc_bottom, double bc_top
@@ -91,7 +105,19 @@ DenseSystem build_dense_laplace(
     auto gr = const_fn(bc_right);
     auto gb = const_fn(bc_bottom);
     auto gt = const_fn(bc_top);
-    return build_dense_laplace(h, gl, gr, gb, gt);
+    return dense_laplace_fdm(h, gl, gr, gb, gt);
+}
+
+DenseSystem read_system(
+    const std::string mat_path,
+    const std::string vec_path
+){
+    DenseSystem sys;
+    if(!read_vector_file(mat_path, sys.A)) return sys;
+    if(!read_vector_file(vec_path, sys.b)) return sys;
+    sys.n = sys.b.size();
+    sys.N = int(std::sqrt(sys.n));
+    return sys;
 }
 
 void print_system(const DenseSystem& sys) {
@@ -118,14 +144,3 @@ void save_system(const DenseSystem& sys){
     save_vector(sys.A, Kmat);
     save_vector(sys.b, Fvec);
 }
-
-// int main() {
-//     // Example: N=3 interior points => h=1/4
-//     double h = 0.02;
-//     double bc_left=0, bc_right=0, bc_bottom=0, bc_top=1;
-
-//     DenseSystem sys = build_dense_laplace(h, bc_left, bc_right, bc_bottom, bc_top);
-
-//     cout << "N=" << sys.N << ", total unknowns = " << sys.N*sys.N << "\n\n";
-//     print_system(sys);
-// }

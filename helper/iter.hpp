@@ -12,6 +12,106 @@ struct Result {
     bool converged = false; // reached convergence or not
 };
 
+// gauss seidel
+Result run_gauss_seidel(const std::vector<double>& A,
+                        const std::vector<double>& b,
+                        int n,
+                        const std::vector<double>& x0,
+                        const double tol = 1e-8,
+                        const int maxit = 1e6)
+{
+    assert(A.size() == static_cast<size_t>(n)*n);
+    assert(b.size() == static_cast<size_t>(n));
+    assert(x0.size() == static_cast<size_t>(n));
+
+    Result res;
+    res.x = x0;
+
+    // check diagonal and (optionally) build 1/diag
+    std::vector<double> Dinv(n, 0.0);
+    for(int i = 0; i < n; ++i){
+        assert(A[i*n + i] != 0.0);
+        Dinv[i] = 1.0 / A[i*n + i];
+    }
+
+    double bn = math::norm(b);
+    for(res.iters = 0; res.iters < maxit; ++res.iters){
+        std::vector<double> xnew = res.x; // will be updated in-place (lower part uses xnew)
+        for(int i = 0; i < n; ++i){
+            double sum = 0.0;
+            // lower part: use updated values from xnew
+            for(int j = 0; j < i; ++j) sum += A[i*n + j] * xnew[j];
+            // upper part: use old values from res.x
+            for(int j = i+1; j < n; ++j) sum += A[i*n + j] * res.x[j];
+
+            // Gauss-Seidel update (omega = 1)
+            xnew[i] = (b[i] - sum) * Dinv[i];
+        }
+
+        double dx_inf = math::norm(math::sub(xnew, res.x), true);
+        double xn_inf = math::norm(xnew, true);
+
+        res.x = std::move(xnew);
+        if(dx_inf <= tol * (1.0 + xn_inf)){
+            res.converged = true;
+            return res;
+        }
+    }
+
+    res.converged = false;
+    return res;
+}
+
+// Jacobi
+Result run_jacobi(const std::vector<double>& A,
+                  const std::vector<double>& b,
+                  int n,
+                  const std::vector<double>& x0,
+                  const double tol = 1e-8,
+                  const int maxit = 1e6)
+{
+    assert(A.size() == static_cast<size_t>(n)*n);
+    assert(b.size() == static_cast<size_t>(n));
+    assert(x0.size() == static_cast<size_t>(n));
+
+    Result res;
+    res.x = x0;
+
+    // check diagonal and precompute 1/diag
+    std::vector<double> Dinv(n, 0.0);
+    for(int i = 0; i < n; ++i){
+        assert(A[i*n + i] != 0.0);
+        Dinv[i] = 1.0 / A[i*n + i];
+    }
+
+    double bn = math::norm(b);
+    for(res.iters = 0; res.iters < maxit; ++res.iters){
+        // compute xnew entirely from old res.x
+        std::vector<double> xnew(n, 0.0);
+
+        for(int i = 0; i < n; ++i){
+            double sum = 0.0;
+            for(int j = 0; j < n; ++j){
+                if(j == i) continue;
+                sum += A[i*n + j] * res.x[j];
+            }
+            xnew[i] = (b[i] - sum) * Dinv[i];
+        }
+
+        double dx_inf = math::norm(math::sub(xnew, res.x), true);
+        double xn_inf = math::norm(xnew, true);
+
+        res.x = std::move(xnew);
+        if(dx_inf <= tol * (1.0 + xn_inf)){
+            res.converged = true;
+            return res;
+        }
+    }
+
+    res.converged = false;
+    return res;
+}
+
 // successive over relaxation
 Result run_sor_opt(const std::vector<double>& A,
                    const std::vector<double>& b,
