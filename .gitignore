@@ -1,10 +1,8 @@
 gmsh-4.14.0-Linux64-sdk
-gmsh conditions impose.docx
-GmshGeometry&MeshCreation.docx
-Octave Commands for extracting Spectral radius and Convergence Rate.docx
 .vscode
 *.pdf
 *.jpg
 *.msh
 *.out
 *.txt
+*.docx

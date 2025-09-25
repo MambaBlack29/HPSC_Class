@@ -9,7 +9,7 @@ int main(){
     double bc_left = 0, bc_right = 0, bc_bottom = 0, bc_top = 1;
 
     // construct the coefficient matrix
-    DenseSystem sys = build_dense_laplace(h, bc_left, bc_right, 
+    DenseSystem sys = dense_laplace_fdm(h, bc_left, bc_right, 
                                           bc_bottom, bc_top);
     // save_system(sys);
 
@@ -22,7 +22,7 @@ int main(){
     // start timer
     auto begin = chrono::high_resolution_clock::now();
 
-    // run the iterative solver
+    // run the iterative solver (CHANGE SOLVER HERE)
     Result res = run_bicgstab(sys.A, sys.b, sys.n, x0);
 
     // end timer
