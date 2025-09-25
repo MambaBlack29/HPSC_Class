@@ -32,37 +32,37 @@ Eig = eig(Gs);
 specRad = max(abs(Eig));
 convRate = -log(specRad);
 
-% iterative steps
-function [x, k] = run_fp(G, c, x0)
-%RUN_FP  Minimal fixed-point iterator for x_{k+1} = G*x_k + c.
-% Usage:
-%   [x, k] = run_fp(G, c)         % starts from zeros(size(c))
-%   [x, k] = run_fp(G, c, x0)     % custom initial guess
-%
-% Stopping rule (fixed):  ||x^{k+1}-x^k||_inf <= 1e-8 * (1 + ||x^{k+1}||_inf)
-% Hard cap on iterations (fixed): 1e6
+% % iterative steps
+% function [x, k] = run_fp(G, c, x0)
+% %RUN_FP  Minimal fixed-point iterator for x_{k+1} = G*x_k + c.
+% % Usage:
+% %   [x, k] = run_fp(G, c)         % starts from zeros(size(c))
+% %   [x, k] = run_fp(G, c, x0)     % custom initial guess
+% %
+% % Stopping rule (fixed):  ||x^{k+1}-x^k||_inf <= 1e-8 * (1 + ||x^{k+1}||_inf)
+% % Hard cap on iterations (fixed): 1e6
 
-    if nargin < 3, x0 = randn(size(c)); end
-    tol   = 1e-8;
-    maxit = 1e8;
+%     if nargin < 3, x0 = randn(size(c)); end
+%     tol   = 1e-8;
+%     maxit = 1e8;
 
-    x = x0;
-    for k = 1:maxit
-        x_new = G*x + c;
-        if norm(x_new - x, inf) <= tol * (1 + norm(x_new, inf))
-            x = x_new;
-            return
-        end
-        x = x_new;
-    end
-    % If we get here, maxit was hit; x holds the last iterate and k = maxit.
-end
+%     x = x0;
+%     for k = 1:maxit
+%         x_new = G*x + c;
+%         if norm(x_new - x, inf) <= tol * (1 + norm(x_new, inf))
+%             x = x_new;
+%             return
+%         end
+%         x = x_new;
+%     end
+%     % If we get here, maxit was hit; x holds the last iterate and k = maxit.
+% end
 
-sm = 0;
-num_iter = 3000;
-for i = 1:num_iter
-    [x, k] = run_fp(Gs, cs);
-    sm = sm + k;
-end
+% sm = 0;
+% num_iter = 3000;
+% for i = 1:num_iter
+%     [x, k] = run_fp(Gs, cs);
+%     sm = sm + k;
+% end
 
-sm = sm / num_iter;
+% sm = sm / num_iter;
