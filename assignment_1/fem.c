@@ -330,7 +330,15 @@ void applycond (double *k, double *f,int n,int m, int * bcdof, double * bcval )
 
 void main()
 {
-
+  char fem_element_filename[255];
+  char fem_node_filename[255];
+  char prefix[255];
+  printf ( "\nPlease enter the filename prefix.\n" );
+  scanf ( "%s", prefix );
+  strcpy ( fem_node_filename, prefix );
+  strcat ( fem_node_filename, "_nodes.txt" );
+  strcpy ( fem_element_filename, prefix );
+  strcat ( fem_element_filename, "_elements.txt" );
   int i,j,k,nnode,mnode,nel,mel;
   double *coord;
   int *elem;
@@ -387,7 +395,7 @@ printf("succesfully opened eleminfo matrix\n" );
 k=0;fclose(f2);
 coord=(double*)malloc(nnode*mnode*sizeof(double));
 elem=(int*)malloc(nel*mel*sizeof(int));
-f3=fopen("unstrucquad_nodes.txt","r");
+f3=fopen(fem_node_filename,"r");
 if(f3==NULL)
 {
   printf("failed to open unstrucquad_nodes \n" );
@@ -414,7 +422,7 @@ for(i=0;i<nnode;i++)
   printf("\n" );
 }
 
-f4=fopen("unstrucquad_elements.txt","r");
+f4=fopen(fem_element_filename,"r");
 if(f4==NULL)
 {
   printf("failed to open unstrucquad_elements \n" );
