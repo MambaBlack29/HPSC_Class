@@ -121,11 +121,10 @@ DenseSystem read_system(
 }
 
 void print_system(const DenseSystem& sys) {
-    int n = sys.N * sys.N;
     std::cout.setf(std::ios::fixed); std::cout << std::setprecision(2);
-    for (int r = 0; r < n; ++r) {
-        for (int c = 0; c < n; ++c) {
-            std::cout << std::setw(6) << sys.A[idx(c, r, n)] << " ";
+    for (int r = 0; r < sys.n; ++r) {
+        for (int c = 0; c < sys.n; ++c) {
+            std::cout << std::setw(6) << sys.A[idx(c, r, sys.n)] << " ";
         }
         std::cout << " | " << std::setw(8) << sys.b[r] << "\n";
     }
