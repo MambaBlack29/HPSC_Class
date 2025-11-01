@@ -5,4 +5,5 @@ gmsh-4.14.0-Linux64-sdk
 *.out
 *.txt
 *.docx
+*.ppt
 *.zip
