@@ -3,7 +3,11 @@
 #include <cmath>
 #include <algorithm>
 #include <cassert>
-#include "math.hpp"
+#ifdef _OPENMP
+    #include "math_omp.hpp"
+#else
+    #include "math.h"
+#endif
 
 // Fixed-point iteration result
 struct Result {
@@ -343,7 +347,7 @@ Result run_bicgstab(const std::vector<double>& A,
         double alphak = math::dot(rk, r0) / math::dot(Apk, r0);
         if(std::isinf(alphak) || alphak < 0) break;
         std::vector<double> sk = math::sub(rk, math::mul(Apk, alphak));
-
+        
         // compute A*s_k and omega_k
         std::vector<double> Ask = math::matmul(A, sk, n, n);
         double omegak = math::dot(Ask, sk) / math::dot(Ask, Ask);
@@ -359,7 +363,7 @@ Result run_bicgstab(const std::vector<double>& A,
         pk = math::add(next_rk, math::mul(pk, betak));
         pk = math::sub(pk, math::mul(Apk, betak*omegak));
         rk = std::move(next_rk);
-
+        
         // break if norm(rk) small
         double rn = math::norm(rk);
         if(rn <= tol * bn){

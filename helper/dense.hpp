@@ -6,7 +6,11 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-#include "math.hpp"
+#ifdef _OPENMP
+    #include "math_omp.hpp"
+#else
+    #include "math.h"
+#endif
 
 // Map (i,j) in 0..N-1 x 0..N-1 to row-major index k
 inline int idx(int i, int j, int N) { return j * N + i; }
