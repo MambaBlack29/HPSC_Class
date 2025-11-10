@@ -13,6 +13,7 @@ int main(){
 
     // system from the Kmat and Fvec
     DenseSystem sys = read_system("Kmat.txt", "Fvec.txt");
+    cout << "Number of nodes:" << sys.n << endl; 
 
     // set number of threads
     int num_threads;
